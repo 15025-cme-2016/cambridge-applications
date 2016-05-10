@@ -29,11 +29,14 @@ def probabilities(colleges, students, sigma_i):
     # set everything to 0
     p = np.zeros((colleges.shape[0] + 1,) + students.shape)
 
-    for ci, college in enumerate(colleges):
-        for si, student in enumerate(students):
-            # p(G + I < T)
-            p_gi_lt_t = norm(student.grade, sigma_i).cdf(college.threshold)
-            p[-1, si] = p_gi_lt_t
-            p[ci, si] = np.nan
+    # align the axes
+    colleges = colleges[:,np.newaxis]
+
+    # p_gi_lt_tk[k,i] = p(G_i + I_i < T_k)
+    p_gi_lt_tk = norm(students.grade, sigma_i).cdf(colleges.threshold)
+    # chosen = students.choice == colleges
+
+    # rejection probability
+    p[-1,:] = p_gi_lt_tk[students.choice,np.arange(len(students))]
 
     return p

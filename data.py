@@ -16,7 +16,7 @@ college_dtype = np.dtype((np.record, [
 student_dtype = np.dtype((np.record, [
     ('name', np.str_, 24),
     ('grade', np.float64),
-    ('choice', np.object_)
+    ('choice', np.intp)
 ]))
 
 REJECTED = -1
@@ -41,12 +41,15 @@ def test_data():
 
     # and some students, most of which are just random samples
     students = np.rec.fromrecords([
-        Student(name='Eric', grade=0.8, choice=caius),
-        Student(name='Tom', grade=0.9, choice=queens),
-        Student(name='Alex', grade=0.7, choice=queens),
-        Student(name='Ruifan', grade=0.7, choice=homerton) #about the same distance away
+        Student(name='Eric', grade=0.8, choice=0),
+        Student(name='Tom', grade=0.9, choice=1),
+        Student(name='Alex', grade=0.7, choice=1),
+        Student(name='Ruifan', grade=0.7, choice=2) #about the same distance away
     ] + [
-        Student(name='Anon {}'.format(i), grade=random.random(), choice=random.choice(colleges))
+        Student(
+            name='Anon {}'.format(i),
+            grade=random.random(),
+            choice=np.random.randint(len(colleges)))
         for i in range(6)
     ], dtype=student_dtype)
 
