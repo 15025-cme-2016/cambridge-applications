@@ -1,4 +1,3 @@
-import data
 from scipy.stats import norm
 import numpy as np
 
@@ -24,20 +23,17 @@ def probabilities(colleges, students, sigma_i):
     """
     Calculates the probability of a student ending up in a given college
 
+    result[ci,si] = p(students[si] ends up at colleges[ci])
+    result[-1,si] = p(students[si] is rejected)
     """
-    p = {}
     # set everything to 0
-    for college in colleges:
-        for student in students:
-            p[college, student] = 0
+    p = np.zeros((colleges.shape[0] + 1,) + students.shape)
 
-
-    for college in colleges:
-        applied = [s for s in students if s.choice == college]
-        for student in students:
+    for ci, college in enumerate(colleges):
+        for si, student in enumerate(students):
             # p(G + I < T)
             p_gi_lt_t = norm(student.grade, sigma_i).cdf(college.threshold)
-            p[data.REJECTED, student] = p_gi_lt_t
-            p[college, student] = float('nan')
+            p[-1, si] = p_gi_lt_t
+            p[ci, si] = np.nan
 
     return p

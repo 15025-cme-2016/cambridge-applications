@@ -1,9 +1,25 @@
 """ Define some simple data_types"""
 from collections import namedtuple
+import numpy as np
 
+# this would be the more pythonic way:
 Student = namedtuple('Student', 'name grade choice')
 College = namedtuple('College', 'name value capacity threshold')
-REJECTED = object()
+
+# But we should use numpy for efficiency
+college_dtype = np.dtype((np.record, [
+    ('name', np.str_, 24),
+    ('value', np.float64),
+    ('capacity', np.uint16),
+    ('threshold', np.float64)
+]))
+student_dtype = np.dtype((np.record, [
+    ('name', np.str_, 24),
+    ('grade', np.float64),
+    ('choice', np.object_)
+]))
+
+REJECTED = -1
 
 def test_data():
     """
@@ -18,10 +34,13 @@ def test_data():
     caius    = College(name='Caius',    value=10, capacity=1, threshold=THRESH)
     queens   = College(name='Queens',   value=8,  capacity=3, threshold=THRESH)
     homerton = College(name='Homerton', value=5,  capacity=2, threshold=THRESH)
-    colleges = [caius, queens, homerton]
+    colleges = np.rec.fromrecords([caius, queens, homerton], dtype=college_dtype)
+
+
+    Student(name='Eric', grade=0.8, choice=caius)
 
     # and some students, most of which are just random samples
-    students = [
+    students = np.rec.fromrecords([
         Student(name='Eric', grade=0.8, choice=caius),
         Student(name='Tom', grade=0.9, choice=queens),
         Student(name='Alex', grade=0.7, choice=queens),
@@ -29,6 +48,6 @@ def test_data():
     ] + [
         Student(name='Anon {}'.format(i), grade=random.random(), choice=random.choice(colleges))
         for i in range(6)
-    ]
+    ], dtype=student_dtype)
 
     return colleges, students

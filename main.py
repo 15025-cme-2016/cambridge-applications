@@ -7,8 +7,8 @@ probs = assign.probabilities(colleges, students, sigma_i=0.2)
 
 print "Results:"
 print
-for student in students:
-    print "{}:".format(student.name)
-    for college in colleges:
-        print "  {:>10s}:{: 6.1f}".format(college.name, 100*probs[college, student])
-    print "  {:>10s}:{: 6.1f}".format('Rejected', 100*probs[data.REJECTED, student])
+for si, student in enumerate(students):
+    print "{} (G={:.2f}):".format(student.name, student.grade)
+    for ci, college in enumerate(colleges):
+        print "  {:>10s}:{: 6.1f}".format(college.name, 100*probs[ci, si])
+    print "  {:>10s}:{: 6.1f}".format('Rejected', 100*probs[data.REJECTED, si])
