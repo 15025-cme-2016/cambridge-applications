@@ -9,7 +9,6 @@ print "Results:"
 print
 for student in students:
     print "{}:".format(student.name)
-    total_prob = sum(probs[college, student] for college in colleges)
     for college in colleges:
         print "  {:>10s}:{: 6.1f}".format(college.name, 100*probs[college, student])
-    print "  {:>10s}:{: 6.1f}".format('Rejected', (1 - total_prob) * 100)
+    print "  {:>10s}:{: 6.1f}".format('Rejected', 100*probs[data.REJECTED, student])
