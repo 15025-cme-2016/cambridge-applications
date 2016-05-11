@@ -48,6 +48,7 @@ def test_data(others=6):
     # and some students, most of which are just random samples
     students = np.rec.fromrecords([
         Student(name='Eric', grade=0.8, choice=0),
+        Student(name='Perfect', grade=1, choice=0),
         Student(name='Tom', grade=0.9, choice=1),
         Student(name='Alex', grade=0.7, choice=1),
         Student(name='Ruifan', grade=0.7, choice=2) #about the same distance away

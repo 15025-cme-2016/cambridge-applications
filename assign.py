@@ -85,15 +85,13 @@ def prob_outcomes(colleges, students, sigma_i):
                 for other_dist in student_dists[other_applied]
             ])
 
-            p_at_least_l_beat_me = np.cumsum(prob_n(p_other_beat_me))
-
-            print college.name, student.name, student.grade.round(2)
-            for p_other, s_other in zip(p_other_beat_me, students[other_applied]):
-                print "  ", p_other.round(2), s_other.grade.round(2)
-            print
+            # count the events
+            p_exactly_l_beat_me = prob_n(p_other_beat_me)
+            p_at_least_l_beat_me = np.cumsum(p_exactly_l_beat_me[::-1])[::-1]
 
             prob[si, Outcome.POOLED] = p_at_least_l_beat_me[college.capacity] * p_not_rejected[si]
 
+    # probabilities sum to 1
     prob[:,Outcome.ACCEPTED] = 1 - prob[:,Outcome.REJECTED] - prob[:,Outcome.POOLED]
 
     return prob
