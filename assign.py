@@ -43,15 +43,16 @@ def prob_outcomes(colleges, students, sigma_i):
     # set everything to 0
     prob = np.zeros(students.shape + (3,))
 
+    # align the axes
+    college_nums = np.arange(len(colleges))[:,np.newaxis]
+    colleges = colleges[:,np.newaxis]
+
     # we can't make use of the vectorization inside norm in all cases, sadly
     student_dist_vec = norm(students.grade, sigma_i)
     student_dists = np.array([
         norm(s.grade, sigma_i) for s in students
     ])
 
-    # align the axes
-    college_nums = np.arange(len(colleges))[:,np.newaxis]
-    colleges = colleges[:,np.newaxis]
 
     # p_gi_lt_tk[k,i] = p(G_i + I_i < T_k)
     p_vi_lt_tk = student_dist_vec.cdf(colleges.threshold)
@@ -96,3 +97,34 @@ def prob_outcomes(colleges, students, sigma_i):
 
     return prob
 
+
+def prob_colleges(colleges, students, prob_outcomes):
+    """
+    TODO: this is wrong, as it assumes outcomes are independent from each
+    other, which is simply not true
+
+    It might not be very wrong...
+    """
+
+    prob = np.zeros((colleges.shape[0] + 1,) + students.shape)
+
+    # align the axes
+    college_nums = np.arange(len(colleges))[:,np.newaxis]
+    colleges = colleges[:,np.newaxis]
+
+    # applied_mask[k,i] is true iff X_i == k
+    applied_mask = students.choice == college_nums
+
+
+    n_spaces = colleges.capacity - (applied_mask * prob_outcomes[:,Outcome.ACCEPTED]).sum(axis=-1, keepdims=1)
+    n_pooled = np.sum(prob_outcomes[:,Outcome.POOLED])
+
+    pool_results = n_spaces / n_pooled
+
+    prob[:-1,:] = prob_outcomes[:,Outcome.ACCEPTED]*applied_mask
+    prob[:-1,:] += prob_outcomes[:,Outcome.POOLED] * pool_results
+    prob[-1,:] = prob_outcomes[:,Outcome.REJECTED]
+    prob[-1,:] += prob_outcomes[:,Outcome.POOLED] * (1 - pool_results.sum(axis=0))
+    pool_results
+
+    return prob
