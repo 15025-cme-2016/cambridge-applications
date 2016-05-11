@@ -19,6 +19,19 @@ def prob_n(event_probs):
     res[:-1] += (1-first) * p_rest_n
     return res
 
+def prob_gauss_order(x2, x1, lim):
+    """
+    P(x2 > x1 > lim)
+    """
+    import scipy.integrate
+    res, acc = scipy.integrate.quad(
+        lambda x: x1.pdf(x) * (1 - x2.cdf(x)),
+        a=lim,
+        b=np.inf
+    )
+    return res
+
+
 
 
 def probabilities(colleges, students, sigma_i):
