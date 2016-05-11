@@ -1,5 +1,6 @@
 from scipy.stats import norm
 import numpy as np
+from data import Outcome
 
 def prob_n(event_probs):
     """
@@ -22,6 +23,7 @@ def prob_n(event_probs):
 def prob_gauss_order(x2, x1, lim):
     """
     P(x2 > x1 > lim)
+    http://math.stackexchange.com/q/1780335/1896
     """
     import scipy.integrate
     res, acc = scipy.integrate.quad(
@@ -33,55 +35,66 @@ def prob_gauss_order(x2, x1, lim):
 
 
 
-
-def probabilities(colleges, students, sigma_i):
+def prob_outcomes(colleges, students, sigma_i):
     """
-    Calculates the probability of a student ending up in a given college
-
-    result[ci,si] = p(students[si] ends up at colleges[ci])
-    result[-1,si] = p(students[si] is rejected)
+    ret[si,outcome] = p(student has outcome o)
     """
+
     # set everything to 0
-    prob = np.zeros((colleges.shape[0] + 1,) + students.shape)
+    prob = np.zeros(students.shape + (3,))
+
+    # we can't make use of the vectorization inside norm in all cases, sadly
+    student_dist_vec = norm(students.grade, sigma_i)
+    student_dists = np.array([
+        norm(s.grade, sigma_i) for s in students
+    ])
 
     # align the axes
     college_nums = np.arange(len(colleges))[:,np.newaxis]
     colleges = colleges[:,np.newaxis]
 
-
     # p_gi_lt_tk[k,i] = p(G_i + I_i < T_k)
-    p_vi_lt_tk = norm(students.grade, sigma_i).cdf(colleges.threshold)
-
-    # probability that one grade is beaten by another
-    # p_gi_gt_gk[i,j] = P(G_i + I_i < G_j + I_j)
-    #                 = P((G_i + I_i) - (G_j + I_j) < 0)
-    # Note that the diagonal is zeros
-    p_vi_lt_vj = norm(students[:,np.newaxis].grade - students.grade, np.sqrt(2) * sigma_i).cdf(0)
-    np.fill_diagonal(p_vi_lt_vj, 0)
-
-    print p_vi_lt_vj.round(2)
+    p_vi_lt_tk = student_dist_vec.cdf(colleges.threshold)
 
     # applied_mask[k,i] is true iff X_i == k
     applied_mask = students.choice == college_nums
 
     # rejection probability
-    prob[-1,:] = np.sum(applied_mask*p_vi_lt_tk, axis=0) # sum over colleges
+    prob[:,Outcome.REJECTED] = np.sum(applied_mask*p_vi_lt_tk, axis=0) # sum over colleges
+    p_not_rejected = 1 - prob[:,Outcome.REJECTED]
 
-    # assume acceptance, for now
-    prob[:-1][applied_mask] = 1 - p_vi_lt_tk[applied_mask]
-
-    for ci, college in enumerate(colleges):
-        #
+    for ci, college in enumerate(colleges):        #
         s_applied = students.choice == ci
 
         if np.sum(s_applied) <= college.capacity:
             # unconditionally accepted
-            pass
-        else:
-            prob[ci,s_applied] *= np.nan
-            # p_n_le_l[l] = P(count(s_applied))
-            # p_n_le_l = np.cumsum(prob_n(p_gi_lt_tk[ci,s_applied]))
-            # prob[ci,s_applied] *= p_n_le_l[college.capacity]
+            prob[s_applied,Outcome.POOLED] = 0
+            continue
 
+        for si, student in enumerate(students):
+            if not s_applied[si]:
+                continue
+
+            # mask for the other students who applied
+            other_applied = s_applied.copy()
+            other_applied[si] = False
+
+            my_dist = student_dists[si]
+            p_other_beat_me = np.array([
+                prob_gauss_order(other_dist, my_dist, college.threshold) / p_not_rejected[si]
+                for other_dist in student_dists[other_applied]
+            ])
+
+            p_at_least_l_beat_me = np.cumsum(prob_n(p_other_beat_me))
+
+            print college.name, student.name, student.grade.round(2)
+            for p_other, s_other in zip(p_other_beat_me, students[other_applied]):
+                print "  ", p_other.round(2), s_other.grade.round(2)
+            print
+
+            prob[si, Outcome.POOLED] = p_at_least_l_beat_me[college.capacity] * p_not_rejected[si]
+
+    prob[:,Outcome.ACCEPTED] = 1 - prob[:,Outcome.REJECTED] - prob[:,Outcome.POOLED]
 
     return prob
+

@@ -1,6 +1,12 @@
 """ Define some simple data_types"""
 from collections import namedtuple
 import numpy as np
+from enum import IntEnum
+
+class Outcome(IntEnum):
+    REJECTED = 0
+    POOLED = 1
+    ACCEPTED = 2
 
 # this would be the more pythonic way:
 Student = namedtuple('Student', 'name grade choice')
