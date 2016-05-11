@@ -21,7 +21,7 @@ student_dtype = np.dtype((np.record, [
 
 REJECTED = -1
 
-def test_data():
+def test_data(others=6):
     """
     Generate some test data
 
@@ -50,7 +50,7 @@ def test_data():
             name='Anon {}'.format(i),
             grade=random.random(),
             choice=np.random.randint(len(colleges)))
-        for i in range(6)
+        for i in range(others)
     ], dtype=student_dtype)
 
     return colleges, students
