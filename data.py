@@ -27,7 +27,7 @@ student_dtype = np.dtype((np.record, [
 
 REJECTED = -1
 
-def test_data(others=6):
+def test_data(others=60):
     """
     Generate some test data
 
@@ -37,21 +37,16 @@ def test_data(others=6):
     THRESH = 0.5
 
     # define some colleges
-    caius    = College(name='Caius',    value=10, capacity=1, threshold=THRESH)
-    queens   = College(name='Queens',   value=8,  capacity=3, threshold=THRESH)
-    homerton = College(name='Homerton', value=5,  capacity=2, threshold=THRESH)
+    caius    = College(name='Caius',    value=10, capacity=others*0.1, threshold=THRESH)
+    queens   = College(name='Queens',   value=8,  capacity=others*0.2, threshold=THRESH)
+    homerton = College(name='Homerton', value=5,  capacity=others*0.1, threshold=THRESH)
     colleges = np.rec.fromrecords([caius, queens, homerton], dtype=college_dtype)
-
-
-    Student(name='Eric', grade=0.8, choice=caius)
 
     # and some students, most of which are just random samples
     students = np.rec.fromrecords([
-        Student(name='Eric', grade=0.8, choice=0),
-        Student(name='Perfect', grade=1, choice=0),
+        Student(name='Eric', grade=0.5, choice=0),
         Student(name='Tom', grade=0.9, choice=1),
-        Student(name='Alex', grade=0.7, choice=1),
-        Student(name='Ruifan', grade=0.7, choice=2) #about the same distance away
+        Student(name='Alex', grade=1, choice=1)
     ] + [
         Student(
             name='Anon {}'.format(i),
@@ -61,3 +56,9 @@ def test_data(others=6):
     ], dtype=student_dtype)
 
     return colleges, students
+
+def make_colleges():
+    caius    = College(name='Caius',    value=10, capacity=10, threshold=THRESH)
+    queens   = College(name='Queens',   value=8,  capacity=10, threshold=THRESH)
+    homerton = College(name='Homerton', value=5,  capacity=20, threshold=THRESH)
+    colleges = np.rec.fromrecords([caius, queens, homerton], dtype=college_dtype)
